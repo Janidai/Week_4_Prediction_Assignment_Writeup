@@ -1,5 +1,5 @@
 ---
-title: "Regression Models Course Project Week 4"
+title: "Week_4_Prediction_Assignment_Writeup"
 author: "Abdellah Janid"
 output:
   pdf_document:
