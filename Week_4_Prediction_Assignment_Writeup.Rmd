@@ -2,8 +2,6 @@
 title: "Week_4_Prediction_Assignment_Writeup"
 author: "Abdellah Janid"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     number_sections: yes
     toc: yes
