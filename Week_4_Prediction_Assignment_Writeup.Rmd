@@ -1,10 +1,19 @@
 ---
 title: "Week_4_Prediction_Assignment_Writeup"
 author: "Abdellah Janid"
+date: "20/01/2020"
 output:
-  html_document:
+  pdf_document:
+    fig_caption: yes
     number_sections: yes
     toc: yes
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+csl: apa.csl
+bibliography: bibliography.bib
+
 ---
 
 ```{r setup, include=FALSE}
@@ -14,8 +23,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r warning=FALSE,message=FALSE}
-# Check for missing dependencies and load necessary R packages
+#load necessary R packages
 library(knitr)
+library(dplyr)
 library(caret)
 library(rpart)
 library(rpart.plot)
@@ -27,84 +37,155 @@ set.seed(301)
 ```
 
 
-# Overview
+# Introduction
 
-Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: [http://groupware.les.inf.puc-rio.br/har]http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+The following assignment aims to predict the manner in which the participant did an exercise
+
+in uses [@halpern_index_2012]
+
 
 # Load Data and cleaning data
 The training data for this project are available here:
-
-[Training Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
-
-The test data are available here:
-
-[Test Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+- [Project and Research paper](http://groupware.les.inf.puc-rio.br/har]http://groupware.les.inf.puc-rio.br/har)
+- [Training Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+- [Test Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
 
 
-The next step is loading the dataset from the URL provided above. The training dataset is then partinioned in 2 to create a Training set (70% of the data) for the modeling process and a Test set (with the remaining 30%) for the validations. The testing dataset is not changed and will only be used for the quiz results generation.
 
-```{r}
-TrainUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
-TestUrl  <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
-TrainFile<-"pml-traininig.csv"
-TestFile<-"pml-testing.csv"
 
-# download the datasets
-if(!file.exists(TrainFile))
-{
-    download.file(TrainUrl,destfile = TrainFile)
+# Research question
+
+
+# Study design
+
+## Data
+To answer the research question, an appropreate data is needed. 
+The data `r dim()` which is considered a large data set, therefore the chosen partitioning strategy is the following
+
+## Training dataset and Cross validation approach:
+
+### Random subsampling
+### K-fold cross validation
+
+**1. Use the training set**
+The original training data set will be split into two 
+**2. Split it into trainning/test sets**
+**3. Build a model on the training set**
+**4. Evaluate on the test set**
+**5. Repeat and average the estimated errors**
+
+## Testing dataset
+
+## Features
+
+# Modelling
+
+What is the confusion matrix?
+
+Sensistivity?
+Specifity?
+Positice Predictive value?
+Negative Predictive value?
+Accuracy?
+
+
+
+## Evaluation
+
+Do we have overfitting problem?
+What is in the sample error? give example for this case?
+What is out of the sample error? give example for this case?
+How do we handle in and out of the sample error?
+
+
+
+## Prediction
+
+
+
+
+https://www.coursera.org/learn/practical-machine-learning/lecture/HZKcr/cross-validation
+What is cross validation?
+  What is random subsampling with replacement and without replacement?
+  what is K-fold?
+  what is leave one out?
+
+
+
+
+
+
+The next step is loading the dataset from the URL provided above. The training dataset is then partinioned in 2 to create a Training set (70% of the data) for the modeling process and a Test set (with the remaining 30%) for the validations.
+
+The testing dataset is not changed and will only be used for the quiz results generation.
+
+```{r get_raw_data}
+data_set_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testing_set_quiz_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+data_set_path <- "data/pml-traininig.csv" # set path and name of the file of the training dataset
+testing_set_quiz_path <- "data/pml-testing.csv" # set path and name of the file of to the testing dataset
+
+
+# If the file does not exist
+if (!file.exists(data_set_path)) {
+  download.file(data_set_url, destfile = data_set_path) # download the datasets
 }
-training <- read.csv(TrainFile)
-if(!file.exists(TestFile))
-{
-    download.file(TestUrl,destfile = TestFile)
+training <- read.csv(training_set_path) # read the file
+
+if (!file.exists(testing_set_path)) {
+  download.file(testing_set_url, destfile = testing_set_path)
 }
-testing  <- read.csv(TestFile)
+testing_quiz <- read.csv(testing_set_path)
+```
 
-# create a partition using caret with the training dataset on 70,30 ratio
-inTrain  <- createDataPartition(training$classe, p=0.7, list=FALSE)
 
-TrainSet <- training[inTrain, ]
+```{r partition_data}
+# create a partition using caret with the training dataset on 80,20 ratio
+inTrain  <- createDataPartition(training$classe,
+                                p=0.8, # Specify the percentage of data to use for the training set, 80% for training and 20 for testing
+                                list=FALSE) #result a matrix and not a list
 
-TestSet  <- training[-inTrain, ]
-dim(TrainSet)
+training <- training[inTrain, ] #subset data into training set
+
+testing  <- training[-inTrain, ]#subset data into testing set
+dim(training)
 ```
 
 ```{r}
-dim(TestSet)
+dim(testing)
 ```
 
 Both created datasets have 160 variables. Let’s clean NA, The Near Zero variance (NZV) variables and the ID variables as well.
 
 ```{r}
 # remove variables with Nearly Zero Variance
-NZV <- nearZeroVar(TrainSet)
-TrainSet <- TrainSet[, -NZV]
-TestSet  <- TestSet[, -NZV]
-dim(TestSet)
+NZV <- nearZeroVar(training)
+training <- training[, -NZV]
+testing  <- testing[, -NZV]
+dim(testing)
 ```
 
 ```{r}
-dim(TrainSet)
+dim(training)
 ```
 
 ```{r}
 # remove variables that are mostly NA
-AllNA    <- sapply(TrainSet, function(x) mean(is.na(x))) > 0.95
-TrainSet <- TrainSet[, AllNA==FALSE]
-TestSet  <- TestSet[, AllNA==FALSE]
-dim(TestSet)
+AllNA    <- sapply(training, function(x) mean(is.na(x))) > 0.95
+training <- training[, AllNA==FALSE]
+testing  <- testing[, AllNA==FALSE]
+dim(testing)
 ```
 
 ```{r}
-dim(TrainSet)
+dim(training)
 ```
 
 ```{r}
 # remove identification only variables (columns 1 to 5)
-TrainSet <- TrainSet[, -(1:5)]
-TestSet  <- TestSet[, -(1:5)]
-dim(TrainSet)
+training <- training[, -(1:5)]
+testing  <- testing[, -(1:5)]
+dim(training)
 ```
 After cleaning, we can see that the number of vairables for the analysis are now only 53.
 
@@ -113,8 +194,8 @@ After cleaning, we can see that the number of vairables for the analysis are now
 A correlation among variables is analysed before proceeing to the modeling procedures.
 
 ```{r}
-corMatrix <- cor(TrainSet[, -54])
-corrplot(corMatrix, order = "FPC", method = "color", type = "lower", 
+corMatrix <- cor(training[, -54])
+corrplot(corMatrix, order = "FPC", method = "color", type = "lower",
          tl.cex = 0.8, tl.col = rgb(0, 0, 0))
 ```
 
@@ -128,21 +209,21 @@ Three popular methods will be applied to model the regressions (in the Train dat
 # model fit
 set.seed(301)
 controlRF <- trainControl(method="cv", number=3, verboseIter=FALSE)
-modFitRandForest <- train(classe ~ ., data=TrainSet, method="rf", trControl=controlRF)
+modFitRandForest <- train(classe ~ ., data=training, method="rf", trControl=controlRF)
 modFitRandForest$finalModel
 ```
 
 ```{r}
 # prediction on Test dataset
-predictRandForest <- predict(modFitRandForest, newdata=TestSet)
-confMatRandForest <- confusionMatrix(predictRandForest, TestSet$classe)
+predictRandForest <- predict(modFitRandForest, newdata=testing)
+confMatRandForest <- confusionMatrix(predictRandForest, testing$classe)
 confMatRandForest
 ```
 
 
 ```{r}
 # plot matrix results
-plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+plot(confMatRandForest$table, col = confMatRandForest$byClass,
      main = paste("Random Forest - Accuracy =",
                   round(confMatRandForest$overall['Accuracy'], 4)))
 ```
@@ -152,20 +233,20 @@ plot(confMatRandForest$table, col = confMatRandForest$byClass,
 ```{r}
 # model fit
 set.seed(301)
-modFitDecTree <- rpart(classe ~ ., data=TrainSet, method="class")
+modFitDecTree <- rpart(classe ~ ., data=training, method="class")
 fancyRpartPlot(modFitDecTree)
 ```
 
 ```{r}
 # prediction on Test dataset
-predictDecTree <- predict(modFitDecTree, newdata=TestSet, type="class")
-confMatDecTree <- confusionMatrix(predictDecTree, TestSet$classe)
+predictDecTree <- predict(modFitDecTree, newdata=testing, type="class")
+confMatDecTree <- confusionMatrix(predictDecTree, testing$classe)
 confMatDecTree
 ```
 
 ```{r}
 # plot matrix results
-plot(confMatDecTree$table, col = confMatDecTree$byClass, 
+plot(confMatDecTree$table, col = confMatDecTree$byClass,
      main = paste("Decision Tree - Accuracy =",
                   round(confMatDecTree$overall['Accuracy'], 4)))
 ```
@@ -175,7 +256,7 @@ plot(confMatDecTree$table, col = confMatDecTree$byClass,
 # model fit
 set.seed(301)
 controlGBM <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
-modFitGBM  <- train(classe ~ ., data=TrainSet, method = "gbm",
+modFitGBM  <- train(classe ~ ., data=training, method = "gbm",
                     trControl = controlGBM, verbose = FALSE)
 ```
 
@@ -185,27 +266,29 @@ modFitGBM$finalModel
 
 ```{r}
 # prediction on Test dataset
-predictGBM <- predict(modFitGBM, newdata=TestSet)
-confMatGBM <- confusionMatrix(predictGBM, TestSet$classe)
+predictGBM <- predict(modFitGBM, newdata=testing)
+confMatGBM <- confusionMatrix(predictGBM, testing$classe)
 confMatGBM
 ```
 
 ```{r}
 # plot matrix results
-plot(confMatGBM$table, col = confMatGBM$byClass, 
+plot(confMatGBM$table, col = confMatGBM$byClass,
      main = paste("GBM - Accuracy =", round(confMatGBM$overall['Accuracy'], 4)))
 ```
 
 # Applying the selected Model to the Test Data
 The accuracy of the 3 regression modeling methods above are:
 
-- Random Forest : 0.9968  
-- Decision Tree : 0.8291  
-- GBM : 0.9884  
+- Random Forest : 0.9968
+- Decision Tree : 0.8291
+- GBM : 0.9884
 In that case, the Random Forest model will be applied to predict the 20 quiz results (testing dataset) as shown below.
 
 ```{r}
-predictTEST <- predict(modFitRandForest, newdata=testing)
+predictTEST <- predict(modFitRandForest, newdata=testing_quiz)
 predictTEST
 ```
 
+# References
+Bibliography list:
